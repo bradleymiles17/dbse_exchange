@@ -18,4 +18,9 @@ global:
   workspace_type: Application
 packages:
   yum:
+    gcc: []
+    gcc-c++: []
+    glibc-devel: []
+    gnu make: []
+    sstream: []
     glibc: []
