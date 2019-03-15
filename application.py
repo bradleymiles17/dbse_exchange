@@ -1,7 +1,7 @@
 import quickfix as fix
-import time, sys, argparse
+import time, argparse
 
-from FixApplication import FixApplication
+from fix.FixApplication import FixApplication
 
 
 def start_fix(file_name):
@@ -18,6 +18,8 @@ def start_fix(file_name):
 
         while 1:
             time.sleep(1)
+
+        acceptor.stop()
     except (fix.ConfigError, fix.RuntimeError) as e:
         print(e)
 
