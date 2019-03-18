@@ -1,23 +1,15 @@
 import quickfix as fix
+from typing import List
 
 from exchange.Exchange import Exchange
-from pkg.common.Order import Side, LimitOrder, MarketOrder
+from pkg.common.Order import *
+from pkg.common.Trade import Trade
+from pkg.qf_map import *
 
 
 class FixApplication(fix.Application):
 
     exchange = Exchange(True)
-
-    orderID = 0
-    execID = 0
-
-    def genOrderID(self) -> str:
-        self.orderID = self.orderID + 1
-        return str(self.orderID)
-
-    def genExecID(self) -> str:
-        self.execID = self.execID + 1
-        return str(self.execID)
 
     def onCreate(self, sessionID):
         return
@@ -35,7 +27,8 @@ class FixApplication(fix.Application):
     def fromAdmin(self, sessionID, message):
         return
 
-    def toApp(self, sessionID, message):
+    def toApp(self, message, sessionID):
+        print("Sending [%s]: %s" % (sessionID, message.toString()))
         return
 
     def fromApp(self, message: fix.Message, sessionID):
@@ -75,24 +68,28 @@ class FixApplication(fix.Application):
         message.getField(clOrdID)
 
         if ordType.getValue() == fix.OrdType_LIMIT:
-            order = LimitOrder(
+            so = SessionOrder(session_id, LimitOrder(
                 clOrdID.getValue(),
                 symbol.getValue(),
                 Side.BID if (side.getValue() == fix.Side_BUY) else Side.ASK,
                 price.getValue(),
                 orderQty.getValue()
-            )
+            ))
         else:
-            order = MarketOrder(
+            so = SessionOrder(session_id, MarketOrder(
                 clOrdID.getValue(),
                 symbol.getValue(),
                 Side.BID if (side.getValue() == fix.Side_BUY) else Side.ASK,
                 orderQty.getValue()
-            )
+            ))
 
-        self.exchange.CreateOrder(order)
-        return 1
+        trades, lob = self.exchange.create_order(so.order)
 
+        # Execution Reports
+        if len(trades) > 0:
+            self.send_trade_reports(session_id, trades)
+        elif len(trades) == 0 or so.order.order_state == OrderState.Cancelled:
+            self.send_execution_report(so)
 
     def on_order_cancel_request(self, message: fix.Message, session_id: fix.SessionID):
         return 1
@@ -100,4 +97,36 @@ class FixApplication(fix.Application):
     def on_order_cancel_replace_request(self, message: fix.Message, session_id: fix.SessionID):
         return 1
 
+    # REPORTING ###############################t#########################################################################
+    def send_trade_reports(self, session_id: fix.SessionID, trades: List[Trade]):
+        for t in trades:
+            print(t)
+            # self.send_trade_execution_report(t.buyer, t.price, t.qty, t.bid_remaining)
+            # self.send_trade_execution_report(t.seller, t.price, t.qty, t.ask_remaining)
+
+    # report on trade execution
+    def send_trade_execution_report(self, so: SessionOrder, price, qty, remaining):
+        self.send_execution_report(so)
+
+    # report on order execution
+    def send_execution_report(self, so: SessionOrder):
+        report = fix.Message()
+        report.getHeader().setField(fix.MsgType(fix.MsgType_ExecutionReport))
+
+        report.setField(fix.OrderID(str(so.order.id)))
+        report.setField(fix.ExecID(str(so.order.id)))
+        report.setField(fix.ExecType(fix.ExecType_ORDER_STATUS))
+        report.setField(fix.OrdStatus(order_status_to_fix(so.order.order_state)))
+
+        report.setField(fix.Symbol(so.order.symbol))
+        report.setField(fix.Side(side_to_fix(so.order.side)))
+        report.setField(fix.OrderQty(so.order.qty))
+        report.setField(fix.LeavesQty(so.order.remaining))
+        report.setField(fix.CumQty(so.order.qty - so.order.remaining))
+        report.setField(fix.AvgPx(0))
+
+        report.setField(fix.ClOrdID(so.order.ClOrdID))
+        report.setField(fix.Price(so.order.price))
+
+        fix.Session.sendToTarget(report, so.session_id)
 
