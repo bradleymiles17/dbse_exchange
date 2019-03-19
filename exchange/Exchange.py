@@ -12,28 +12,26 @@ class Exchange:
         super().__init__()
         self.verbose = debug
 
-    def create_order(self, order: Order):
-        print(Acknowledged(time.time(), order.id))
+    def create_order(self, so: SessionOrder):
+        print(Acknowledged(time.time(), so.order.id, so.order.ClOrdID))
 
-        trades = self.lob.add(order)
+        trades = self.lob.add(so)
         lob = self.publish_lob()
-
-        print(lob)
 
         return trades, lob
 
     def modify_order(self, order_id, price, qty):
         print("Amend Request")
 
-    def cancel_order(self, exchange_id: int):
+    def cancel_order(self, id: int):
         print("Cancel Request")
 
-        removed = self.lob.delete(exchange_id)
+        removed = self.lob.delete(id)
 
         if removed:
-            print(Acknowledged(time.time(), exchange_id))
+            print(Acknowledged(time.time(), id, 0))
         else:
-            print(Rejected(time.time(), "Order not found", exchange_id))
+            print(Rejected(time.time(), "Order not found", id))
 
     def publish_orders(self):
         public_data = {

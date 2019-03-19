@@ -30,14 +30,14 @@ class OrderState:
 
 class Order:
     id: int = None
+    ClOrdID: str = None
     timestamp = None
     price: float = None
     order_type: OrderType = None
 
-    def __init__(self, ClOrdID: str, symbol: str, side: Side, qty: float):
+    def __init__(self, symbol: str, side: Side, qty: float):
         self.id = gen_order_id()
         self.timestamp = time.time()
-        self.ClOrdID = ClOrdID
         self.symbol = symbol
         self.side = side
         self.qty = qty
@@ -54,16 +54,16 @@ class Order:
 
 class MarketOrder(Order):
 
-    def __init__(self, ClOrdID: str, symbol: str, side: Side, qty: float):
-        super().__init__(ClOrdID, symbol, side, qty)
+    def __init__(self, symbol: str, side: Side, qty: float):
+        super().__init__(symbol, side, qty)
         self.price = 0
         self.order_type = OrderType.MARKET
 
 
 class LimitOrder(Order):
 
-    def __init__(self, ClOrdID: str, symbol: str, side: Side, price: float, qty: float):
-        super().__init__(ClOrdID, symbol, side, qty)
+    def __init__(self, symbol: str, side: Side, qty: float, price: float):
+        super().__init__(symbol, side, qty)
         self.price = price
         self.order_type = OrderType.LIMIT
 
@@ -73,5 +73,3 @@ class SessionOrder:
     def __init__(self, session_id, order: Order):
         self.session_id = session_id
         self.order = order
-
-

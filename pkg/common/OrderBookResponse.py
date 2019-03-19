@@ -18,13 +18,14 @@ class Filled(OrderBookResponse):
 
 
 class Acknowledged(OrderBookResponse):
-    def __init__(self, timestamp, exchange_id: int):
+    def __init__(self, timestamp, id: int, clOrdId):
         self.timestamp = timestamp
-        self.exchange_id = exchange_id
+        self.id = id
+        self.clOrdId = clOrdId
 
     def __str__(self):
-        return 'ACKNOWLEDGED (T=%5.2f): [%s]' % \
-               (self.timestamp, self.exchange_id)
+        return 'ACKNOWLEDGED (T=%5.2f): [%s %s]' % \
+               (self.timestamp, self.id, self.clOrdId)
 
 
 class Rejected(OrderBookResponse):
