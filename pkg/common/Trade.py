@@ -18,9 +18,6 @@ class Trade:
         self.price = price
         self.qty = qty
 
-        # self.bid_remaining = None
-        # self.ask_remaining = None
-
     def __str__(self):
         return 'TRADE (%5.2f): [Q=%s P=%.2f]' % \
                (self.timestamp, self.qty, self.price)

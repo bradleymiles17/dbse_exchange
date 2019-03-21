@@ -30,7 +30,7 @@ class OrderState:
 
 class Order:
     id: int = None
-    ClOrdID: str = None
+    ClOrdID: int = None
     timestamp = None
     price: float = None
     order_type: OrderType = None

@@ -8,7 +8,6 @@ from pkg.qf_map import *
 
 
 class FixApplication(fix.Application):
-
     exchange = Exchange(True)
 
     def onCreate(self, sessionID):
@@ -71,14 +70,14 @@ class FixApplication(fix.Application):
             so = SessionOrder(session_id,
                               LimitOrder(symbol.getValue(), Side.BID if (side.getValue() == fix.Side_BUY) else Side.ASK,
                                          orderQty.getValue(), price.getValue()))
-            so.order.ClOrdID = clOrdID.getValue()
+            so.order.ClOrdID = int(clOrdID.getValue())
         else:
             so = SessionOrder(session_id, MarketOrder(
                 symbol.getValue(),
                 Side.BID if (side.getValue() == fix.Side_BUY) else Side.ASK,
                 orderQty.getValue()
             ))
-            so.order.ClOrdID = clOrdID.getValue()
+            so.order.ClOrdID = int(clOrdID.getValue())
 
         trades, lob = self.exchange.create_order(so)
 
@@ -98,13 +97,19 @@ class FixApplication(fix.Application):
         return 1
 
     # REPORTING ###############################t########################################################################
+    execId = 0
+
+    def gen_exec_id(self) -> str:
+        self.execId = self.execId + 1
+        return str(self.execId)
+
     def create_execution_report(self, so: SessionOrder, exec_type: fix.ExecType):
         report = fix.Message()
         report.getHeader().setField(fix.MsgType(fix.MsgType_ExecutionReport))
 
         report.setField(fix.OrderID(str(so.order.id)))
-        report.setField(fix.ClOrdID(so.order.ClOrdID))
-        report.setField(fix.ExecID(str(so.order.id)))
+        report.setField(fix.ClOrdID(str(so.order.ClOrdID)))
+        report.setField(fix.ExecID(self.gen_exec_id()))
         report.setField(fix.ExecType(exec_type))
         report.setField(fix.OrdStatus(order_status_to_fix(so.order.order_state)))
 

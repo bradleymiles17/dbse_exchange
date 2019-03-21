@@ -18,7 +18,7 @@ class Filled(OrderBookResponse):
 
 
 class Acknowledged(OrderBookResponse):
-    def __init__(self, timestamp, id: int, clOrdId):
+    def __init__(self, timestamp, id: int, clOrdId: int):
         self.timestamp = timestamp
         self.id = id
         self.clOrdId = clOrdId
