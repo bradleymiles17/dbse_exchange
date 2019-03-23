@@ -168,9 +168,6 @@ class Orderbook:
 
             trade = Trade(timestamp, best_bid, best_ask, price, qty)
 
-            # trade.bid_remaining = best_bid.order.remaining
-            # trade.ask_remaining = best_ask.order.remaining
-
             trades.append(trade)
             self.tape.append(trade)
 

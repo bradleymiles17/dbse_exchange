@@ -1,4 +1,5 @@
 import quickfix as fix
+import datetime
 from typing import List
 
 from exchange.Exchange import Exchange
@@ -66,18 +67,31 @@ class FixApplication(fix.Application):
         clOrdID = fix.ClOrdID()
         message.getField(clOrdID)
 
+        client_id = fix.ClientID()
+        message.getField(client_id)
+
         if ordType.getValue() == fix.OrdType_LIMIT:
-            so = SessionOrder(session_id,
-                              LimitOrder(symbol.getValue(), Side.BID if (side.getValue() == fix.Side_BUY) else Side.ASK,
-                                         orderQty.getValue(), price.getValue()))
-            so.order.ClOrdID = int(clOrdID.getValue())
+            so = SessionOrder(
+                session_id,
+                LimitOrder(
+                    self.exchange.gen_order_id(),
+                    client_id.getValue(),
+                    symbol.getValue(),
+                    Side.BID if (side.getValue() == fix.Side_BUY) else Side.ASK,
+                    orderQty.getValue(),
+                    price.getValue())
+            )
         else:
-            so = SessionOrder(session_id, MarketOrder(
-                symbol.getValue(),
-                Side.BID if (side.getValue() == fix.Side_BUY) else Side.ASK,
-                orderQty.getValue()
-            ))
-            so.order.ClOrdID = int(clOrdID.getValue())
+            so = SessionOrder(
+                session_id, MarketOrder(
+                    self.exchange.gen_order_id(),
+                    client_id.getValue(),
+                    symbol.getValue(),
+                    Side.BID if (side.getValue() == fix.Side_BUY) else Side.ASK,
+                    orderQty.getValue()
+                ))
+
+        so.order.ClOrdID = int(clOrdID.getValue())
 
         trades, lob = self.exchange.create_order(so)
 
@@ -109,6 +123,7 @@ class FixApplication(fix.Application):
 
         report.setField(fix.OrderID(str(so.order.id)))
         report.setField(fix.ClOrdID(str(so.order.ClOrdID)))
+        report.setField(fix.ClientID(so.order.client_id))
         report.setField(fix.ExecID(self.gen_exec_id()))
         report.setField(fix.ExecType(exec_type))
         report.setField(fix.OrdStatus(order_status_to_fix(so.order.order_state)))

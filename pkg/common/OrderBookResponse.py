@@ -1,5 +1,7 @@
 from typing import List
 
+from pkg.common import Order
+
 
 class OrderBookResponse:
     timestamp = None
@@ -18,14 +20,13 @@ class Filled(OrderBookResponse):
 
 
 class Acknowledged(OrderBookResponse):
-    def __init__(self, timestamp, id: int, clOrdId: int):
+    def __init__(self, timestamp, order: Order):
         self.timestamp = timestamp
-        self.id = id
-        self.clOrdId = clOrdId
+        self.order = order
 
     def __str__(self):
-        return 'ACKNOWLEDGED (T=%5.2f): [%s %s]' % \
-               (self.timestamp, self.id, self.clOrdId)
+        return 'ACKNOWLEDGED (T=%5.2f): [%s %s %s]' % \
+               (self.timestamp, self.order.id, self.order.ClOrdID, self.order)
 
 
 class Rejected(OrderBookResponse):
