@@ -1,6 +1,5 @@
 from exchange.Orderbook import Orderbook
 from pkg.common.Order import *
-from pkg.common.OrderBookResponse import *
 
 import time
 
@@ -11,34 +10,32 @@ class Exchange:
 
     orderID = 0
 
+    def __init__(self):
+        print("Initialising Exchange")
+
     def gen_order_id(self) -> int:
         self.orderID = self.orderID + 1
         return self.orderID
 
-    def __init__(self, debug):
-        super().__init__()
-        self.verbose = debug
-
     def create_order(self, so: SessionOrder):
-        print(Acknowledged(time.time(), so.order))
+        print('ACKNOWLEDGED (T=%5.2f): %s' % (so.timestamp, so.order))
 
-        trades = self.lob.add(so)
-        lob = self.publish_lob()
+        ack_order, trades = self.lob.add(so)
 
-        return trades, lob
+        # publish market data
+        if len(trades) > 0:
+            lob = self.publish_lob()
+            print(lob)
+            print("\n")
+
+        return ack_order, trades
 
     def modify_order(self, order_id, price, qty):
         print("Amend Request")
 
     def cancel_order(self, id: int):
         print("Cancel Request")
-
         removed = self.lob.delete(id)
-
-        # if removed:
-        #     print(Acknowledged(time.time(), id, 0, ))
-        # else:
-        #     print(Rejected(time.time(), "Order not found", id))
 
     def publish_orders(self):
         public_data = {

@@ -4,6 +4,7 @@ from pkg.common.Trade import Trade
 from pkg.common.Order import *
 from typing import List, Optional
 
+
 # Orderbook_half is one side of the book: a list of bids or a list of asks, each sorted best-first
 class Orderbook_Half:
 
@@ -134,6 +135,8 @@ class Orderbook:
 
     def add(self, so: SessionOrder):
         so.order.order_state = OrderState.Booked
+        ack_so = deepcopy(so)
+
         if so.order.side == Side.BID:
             self.bids.add_order(so)
         else:
@@ -143,9 +146,10 @@ class Orderbook:
 
         if so.order.order_type == OrderType.MARKET and so.order.is_active():
             so.order.OrderState = OrderState.Cancelled
+            ack_so.order.OrderState = OrderState.Cancelled
             self.delete(so.order.id)
 
-        return trades
+        return ack_so, trades
 
     def __match_trades(self):
         trades = []
@@ -156,7 +160,7 @@ class Orderbook:
         while best_bid is not None and best_ask is not None and best_bid.order.price >= best_ask.order.price:
 
             # use resting order
-            if best_bid.order.timestamp < best_ask.order.timestamp:
+            if best_bid.timestamp < best_ask.timestamp:
                 price = best_bid.order.price
             else:
                 price = best_ask.order.price
@@ -166,7 +170,7 @@ class Orderbook:
             self.__fill(best_bid.order, qty)
             self.__fill(best_ask.order, qty)
 
-            trade = Trade(timestamp, best_bid, best_ask, price, qty)
+            trade = Trade(timestamp, deepcopy(best_bid), deepcopy(best_ask), price, qty)
 
             trades.append(trade)
             self.tape.append(trade)

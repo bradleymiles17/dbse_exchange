@@ -10,10 +10,10 @@ def start_fix(file_name):
         application = FixApplication()
         storeFactory = fix.FileStoreFactory(settings)
         logFactory = fix.FileLogFactory(settings)
-        print('creating acceptor')
+        print('Creating FIX Acceptor')
         acceptor = fix.SocketAcceptor(application, storeFactory, settings, logFactory)
 
-        print('starting acceptor')
+        print('Starting FIX Acceptor')
         acceptor.start()
 
         while 1:

@@ -9,7 +9,7 @@ from pkg.qf_map import *
 
 
 class FixApplication(fix.Application):
-    exchange = Exchange(True)
+    exchange = Exchange()
 
     def onCreate(self, sessionID):
         return
@@ -93,16 +93,14 @@ class FixApplication(fix.Application):
 
         so.order.ClOrdID = int(clOrdID.getValue())
 
-        trades, lob = self.exchange.create_order(so)
+        ack_order, trades = self.exchange.create_order(so)
 
         # Execution Reports
+        self.send_order_status(ack_order)
+
         if len(trades) > 0:
             self.send_trade_reports(trades)
-        elif len(trades) == 0 or so.order.order_state == OrderState.Cancelled:
-            self.send_order_status(so)
 
-        print(lob)
-        print("\n")
 
     def on_order_cancel_request(self, message: fix.Message, session_id: fix.SessionID):
         return 1
