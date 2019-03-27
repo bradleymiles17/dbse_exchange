@@ -16,6 +16,7 @@ class FixApplication(fix.Application):
 
     def onLogon(self, sessionID):
         print("New session logon '%s'." % sessionID.toString())
+        self.exchange.market_publisher.add_lob_update_event(self.exchange.lob.publish())
         return
 
     def onLogout(self, sessionID):

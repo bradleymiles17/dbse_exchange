@@ -61,7 +61,7 @@ class Orderbook_Half:
         if len(self.orders) > 0:
             return self.orders[-1].order.price
         else:
-            return None
+            return 1 if self.side == Side.BID else 1000
 
     def get_best_order(self) -> SessionOrder:
         if len(self.orders) > 0:
@@ -111,9 +111,10 @@ class Orderbook_Half:
 
 
 # Orderbook for a single instrument: list of bids and list of asks
-class Orderbook:
+class OrderBook:
 
     def __init__(self, symbol):
+        print("Initialising OrderBook = %s" % symbol)
         bse_sys_min_price = 1  # minimum price in the system, in cents/pennies
         bse_sys_max_price = 1000  # maximum price in the system, in cents/pennies
 
@@ -121,6 +122,27 @@ class Orderbook:
         self.bids = Orderbook_Half(Side.BID, bse_sys_min_price)
         self.asks = Orderbook_Half(Side.ASK, bse_sys_max_price)
         self.tape = []
+
+    def publish(self):
+        public_data = {
+            'time': time.time(),
+            'bids': {
+                'best': self.bids.get_best_price(),
+                'worst': self.bids.get_worst_price(),
+                'order_n': self.bids.get_order_n(),
+                'qty': self.bids.get_qty(),
+                'lob': self.bids.get_anonymize_lob()
+            },
+            'asks': {
+                'best': self.asks.get_best_price(),
+                'worst': self.asks.get_worst_price(),
+                'order_n': self.asks.get_order_n(),
+                'qty': self.asks.get_qty(),
+                'lob': self.asks.get_anonymize_lob()
+            },
+            # 'tape': self.tape
+        }
+        return public_data
 
     def get(self, id: int):
         bid = self.bids.get_order(id)
