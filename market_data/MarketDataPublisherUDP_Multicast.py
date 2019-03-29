@@ -41,6 +41,7 @@ class MarketDataPublisher:
                 # Send data to the multicast group
                 print('MARKET UPDATE "%s"' % message)
                 sent = sock.sendto(message.encode('utf-8'), multicast_group)
+                print('SEND %s' % sent)
             except socket.timeout:
                 print("socket timeout")
 

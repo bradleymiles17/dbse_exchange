@@ -16,7 +16,7 @@ class FixApplication(fix.Application):
 
     def onLogon(self, sessionID):
         print("New session logon '%s'." % sessionID.toString())
-        self.exchange.market_publisher.add_lob_update_event(self.exchange.lob.publish())
+        self.exchange.market_publisher.broadcast(self.exchange.lob.publish())
         return
 
     def onLogout(self, sessionID):
@@ -102,12 +102,16 @@ class FixApplication(fix.Application):
         if len(trades) > 0:
             self.send_trade_reports(trades)
 
-
     def on_order_cancel_request(self, message: fix.Message, session_id: fix.SessionID):
-        return 1
+
+        clOrdID = fix.ClOrdID()
+        message.getField(clOrdID)
+
+        self.exchange.cancel_order(int(clOrdID.getValue()))
+
 
     def on_order_cancel_replace_request(self, message: fix.Message, session_id: fix.SessionID):
-        return 1
+        return NotImplementedError
 
     # REPORTING ###############################t########################################################################
     execId = 0

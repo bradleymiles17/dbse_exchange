@@ -1,7 +1,7 @@
 from exchange.OrderBook import OrderBook
-from market_data.MarketDataPublisher import MarketDataPublisher
+from market_data.MarketDataPublisherUDP_Unicast import MarketDataPublisher
 from pkg.common.Order import *
-
+import asyncore
 
 # Exchange's internal orderbook
 class Exchange:
@@ -11,7 +11,7 @@ class Exchange:
     def __init__(self):
         print("Initialising Exchange")
         self.lob = OrderBook("SMBL")
-        self.market_publisher = MarketDataPublisher()
+        self.market_publisher = MarketDataPublisher(True)
 
     def gen_order_id(self) -> int:
         self.orderID = self.orderID + 1
@@ -23,13 +23,18 @@ class Exchange:
         ack_order, trades = self.lob.add(so)
 
         # publish market data
-        self.market_publisher.add_lob_update_event(self.lob.publish())
+        self.market_publisher.broadcast(self.lob.publish())
 
         return ack_order, trades
 
-    def modify_order(self, order_id, price, qty):
-        print("Amend Request")
+    def cancel_order(self, ClOrdID: int):
+        print('\nCANCEL REQUEST: %d' % ClOrdID)
 
-    def cancel_order(self, id: int):
-        print("Cancel Request")
-        removed = self.lob.delete(id)
+        so = self.lob.get_by_ClOrdID(ClOrdID)
+        if so is not None:
+            ack = self.lob.delete(so)
+
+            # publish market data
+            self.market_publisher.broadcast(self.lob.publish())
+
+        self.lob.publish()

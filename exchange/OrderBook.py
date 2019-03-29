@@ -27,6 +27,13 @@ class Orderbook_Half:
 
         return None
 
+    def get_order_by_ClOrdID(self, ClOrdID: int) -> Optional[SessionOrder]:
+        for i, so in enumerate(self.orders):
+            if so.order.ClOrdID == ClOrdID:
+                return self.orders[i]
+
+        return None
+
     def get_orders(self) -> List[str]:
         return list(map(str, self.orders))
 
@@ -49,7 +56,9 @@ class Orderbook_Half:
         if i is not None:
             del self.orders[i]
             self._build_lob()
-        return True
+            return True
+
+        return False
 
     def get_best_price(self):
         if len(self.orders) > 0:
@@ -91,7 +100,7 @@ class Orderbook_Half:
 
             lob_anon.append([price, int(qty)])
 
-        return lob_anon
+        return lob_anon[0:10]
 
     # take a list of orders and build a limit-order-book (lob) from it
     # NB the exchange needs to know arrival times and trader-id associated with each order
@@ -155,6 +164,17 @@ class OrderBook:
         else:
             return None
 
+    def get_by_ClOrdID(self, ClOrdID: int):
+        bid = self.bids.get_order_by_ClOrdID(ClOrdID)
+        ask = self.asks.get_order_by_ClOrdID(ClOrdID)
+
+        if bid is not None:
+            return bid
+        elif ask is not None:
+            return ask
+        else:
+            return None
+
     def add(self, so: SessionOrder):
         so.order.order_state = OrderState.Booked
         ack_so = deepcopy(so)
@@ -169,7 +189,7 @@ class OrderBook:
         if so.order.order_type == OrderType.MARKET and so.order.is_active():
             so.order.OrderState = OrderState.Cancelled
             ack_so.order.OrderState = OrderState.Cancelled
-            self.delete(so.order.id)
+            self.delete(so)
 
         return ack_so, trades
 
@@ -198,11 +218,11 @@ class OrderBook:
             self.tape.append(trade)
 
             if best_bid.order.remaining == 0:
-                self.delete(best_bid.order.id)
+                self.delete(best_bid)
                 best_bid = self.bids.get_best_order()
 
             if best_ask.order.remaining == 0:
-                self.delete(best_ask.order.id)
+                self.delete(best_ask)
                 best_ask = self.asks.get_best_order()
 
         return trades
@@ -214,13 +234,10 @@ class OrderBook:
         else:
             order.order_state = OrderState.PartialFill
 
-    def delete(self, id: int):
-        so = self.get(id)
-
+    def delete(self, so: SessionOrder):
         if so.order.side == Side.BID:
             removed = self.bids.delete_order(so)
         else:
             removed = self.asks.delete_order(so)
 
-        if not removed:
-            return "OrderNotFound"
+        return removed
