@@ -27,9 +27,9 @@ class Orderbook_Half:
 
         return None
 
-    def get_order_by_ClOrdID(self, ClOrdID: int) -> Optional[SessionOrder]:
+    def get_order_by_ClOrdID(self, session_id: str, ClOrdID: int) -> Optional[SessionOrder]:
         for i, so in enumerate(self.orders):
-            if so.order.ClOrdID == ClOrdID:
+            if so.order.ClOrdID == ClOrdID and so.session_id == session_id:
                 return self.orders[i]
 
         return None
@@ -164,9 +164,9 @@ class OrderBook:
         else:
             return None
 
-    def get_by_ClOrdID(self, ClOrdID: int):
-        bid = self.bids.get_order_by_ClOrdID(ClOrdID)
-        ask = self.asks.get_order_by_ClOrdID(ClOrdID)
+    def get_by_ClOrdID(self, session_id: str, ClOrdID: int):
+        bid = self.bids.get_order_by_ClOrdID(session_id, ClOrdID)
+        ask = self.asks.get_order_by_ClOrdID(session_id, ClOrdID)
 
         if bid is not None:
             return bid

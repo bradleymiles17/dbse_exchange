@@ -27,10 +27,10 @@ class Exchange:
 
         return ack_order, trades
 
-    def cancel_order(self, ClOrdID: int):
-        print('\nCANCEL REQUEST: %d' % ClOrdID)
+    def cancel_order(self, session_id: str, ClOrdID: int):
+        print('\nCANCEL REQUEST: %s %d' % (session_id, ClOrdID))
 
-        so = self.lob.get_by_ClOrdID(ClOrdID)
+        so = self.lob.get_by_ClOrdID(session_id, ClOrdID)
         if so is not None:
             ack = self.lob.delete(so)
 

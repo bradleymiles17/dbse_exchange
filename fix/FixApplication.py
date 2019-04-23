@@ -107,7 +107,7 @@ class FixApplication(fix.Application):
         clOrdID = fix.ClOrdID()
         message.getField(clOrdID)
 
-        self.exchange.cancel_order(int(clOrdID.getValue()))
+        self.exchange.cancel_order(session_id.toString(), int(clOrdID.getValue()))
 
 
     def on_order_cancel_replace_request(self, message: fix.Message, session_id: fix.SessionID):

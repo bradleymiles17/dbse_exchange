@@ -2,6 +2,7 @@ import socket, struct, json
 from multiprocessing import Pipe
 from threading import Thread
 
+# TARGET_IPS = ["192.168.0.17"]
 TARGET_IPS = ["172.31.19.249", "172.31.16.218", "172.32.12.58"]
 UDP_PORT = 5005
 
