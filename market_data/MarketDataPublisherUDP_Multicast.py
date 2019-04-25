@@ -1,9 +1,11 @@
-import socket, struct, json
+import json
+import socket
+import struct
 from multiprocessing import Pipe
 from threading import Thread
 
 # UDP GROUP IP
-multicast_group = ('224.3.29.71', 10000)
+multicast_group = ('224.3.30.33', 10000)
 
 # Create the datagram socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -21,16 +23,16 @@ sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, ttl)
 # UDP Broadcast of MarketData
 class MarketDataPublisher:
 
-    c1_r, c1_w = Pipe(duplex=False)
-
     def __init__(self):
         print("Initialising Market Data Publisher")
-        Thread(target=self.broadcast).start()
+        self.c1_r, self.c1_w = Pipe(duplex=False)
 
-    def add_lob_update_event(self, lob):
+        Thread(target=self.__broadcast).start()
+
+    def broadcast(self, lob):
         self.c1_w.send(lob)
 
-    def broadcast(self):
+    def __broadcast(self):
         print("Start Broadcaster...")
 
         while True:
@@ -44,4 +46,3 @@ class MarketDataPublisher:
                 print('SEND %s' % sent)
             except socket.timeout:
                 print("socket timeout")
-

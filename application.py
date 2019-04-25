@@ -1,5 +1,7 @@
+import argparse
+import time
+
 import quickfix as fix
-import time, argparse
 
 from fix.FixApplication import FixApplication
 

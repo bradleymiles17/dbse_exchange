@@ -1,5 +1,3 @@
-import quickfix as fix
-import datetime
 from typing import List
 
 from exchange.Exchange import Exchange
@@ -84,7 +82,8 @@ class FixApplication(fix.Application):
             )
         else:
             so = SessionOrder(
-                session_id, MarketOrder(
+                session_id,
+                MarketOrder(
                     self.exchange.gen_order_id(),
                     client_id.getValue(),
                     symbol.getValue(),

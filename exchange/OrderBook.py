@@ -1,8 +1,9 @@
 import functools
-
-from pkg.common.Trade import Trade
-from pkg.common.Order import *
+from datetime import datetime
 from typing import List, Optional
+
+from pkg.common.Order import *
+from pkg.common.Trade import Trade
 
 
 # Orderbook_half is one side of the book: a list of bids or a list of asks, each sorted best-first
@@ -29,7 +30,7 @@ class Orderbook_Half:
 
     def get_order_by_ClOrdID(self, session_id: str, ClOrdID: int) -> Optional[SessionOrder]:
         for i, so in enumerate(self.orders):
-            if so.order.ClOrdID == ClOrdID and so.session_id == session_id:
+            if so.order.ClOrdID == ClOrdID and so.session_id.toString() == session_id:
                 return self.orders[i]
 
         return None
@@ -100,7 +101,7 @@ class Orderbook_Half:
 
             lob_anon.append([price, int(qty)])
 
-        return lob_anon[0:10]
+        return lob_anon
 
     # take a list of orders and build a limit-order-book (lob) from it
     # NB the exchange needs to know arrival times and trader-id associated with each order
@@ -134,20 +135,20 @@ class OrderBook:
 
     def publish(self):
         public_data = {
-            'time': time.time(),
+            'time': datetime.timestamp(datetime.now()),
             'bids': {
                 'best': self.bids.get_best_price(),
                 'worst': self.bids.get_worst_price(),
                 'order_n': self.bids.get_order_n(),
                 'qty': self.bids.get_qty(),
-                'lob': self.bids.get_anonymize_lob()
+                'lob': self.bids.get_anonymize_lob()[0:10]
             },
             'asks': {
                 'best': self.asks.get_best_price(),
                 'worst': self.asks.get_worst_price(),
                 'order_n': self.asks.get_order_n(),
                 'qty': self.asks.get_qty(),
-                'lob': self.asks.get_anonymize_lob()
+                'lob': self.asks.get_anonymize_lob()[0:10]
             },
             # 'tape': self.tape
         }
@@ -201,22 +202,26 @@ class OrderBook:
 
         while best_bid is not None and best_ask is not None and best_bid.order.price >= best_ask.order.price:
 
-            # use resting order
+            # calculate resting order price
             if best_bid.timestamp < best_ask.timestamp:
                 price = best_bid.order.price
             else:
                 price = best_ask.order.price
 
+            # calculate trade qty
             qty = min(best_bid.order.remaining, best_ask.order.remaining)
 
+            # fill bid and ask side
             self.__fill(best_bid.order, qty)
             self.__fill(best_ask.order, qty)
 
+            # create trade
             trade = Trade(timestamp, deepcopy(best_bid), deepcopy(best_ask), price, qty)
 
             trades.append(trade)
             self.tape.append(trade)
 
+            # remove any filled orders from LOB
             if best_bid.order.remaining == 0:
                 self.delete(best_bid)
                 best_bid = self.bids.get_best_order()

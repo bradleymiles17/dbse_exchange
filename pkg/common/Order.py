@@ -36,8 +36,8 @@ class Order:
         self.order_state = OrderState.New
 
     def __str__(self):
-        return '[%d %s %s %s %s P=%.2f Q=%s R=%s]' % \
-               (self.id, self.client_id, self.order_type, self.symbol, self.side, self.price, self.qty, self.remaining)
+        return '[%d %d %s %s %s %s P=%.2f Q=%s R=%s]' % \
+               (self.id, self.ClOrdID, self.client_id, self.order_type, self.symbol, self.side, self.price, self.qty, self.remaining)
 
     def is_active(self) -> bool:
         return self.order_state != OrderState.Filled and self.order_state != OrderState.Cancelled and self.order_state != OrderState.Rejected
