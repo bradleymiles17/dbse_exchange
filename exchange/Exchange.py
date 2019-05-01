@@ -21,7 +21,7 @@ class Exchange:
             func=self.__override,
             name="Time Scheduler",
             trigger='interval',
-            seconds=5,
+            seconds=1,
         )
         scheduler.start()
 

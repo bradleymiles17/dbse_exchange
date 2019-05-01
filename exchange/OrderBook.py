@@ -81,7 +81,7 @@ class Orderbook_Half:
         if len(self.orders) > 0:
             return self.orders[-1].order.price
         else:
-            return 1 if self.side == Side.BID else 1000
+            return self.__worst_price
 
     def get_best_order(self) -> SessionOrder:
         if len(self.orders) > 0:
@@ -136,7 +136,7 @@ class OrderBook:
     def __init__(self, symbol):
         print("Initialising OrderBook = %s" % symbol)
         bse_sys_min_price = 1  # minimum price in the system, in cents/pennies
-        bse_sys_max_price = 1000  # maximum price in the system, in cents/pennies
+        bse_sys_max_price = 300  # maximum price in the system, in cents/pennies
 
         self.symbol = symbol
         self.bids = Orderbook_Half(Side.BID, bse_sys_min_price)
