@@ -3,7 +3,7 @@ import time
 
 import quickfix as fix
 
-from fix.FixApplication import FixApplication
+from fix_engine.FixApplication import FixApplication
 
 
 def start_fix(file_name):
