@@ -4,7 +4,7 @@ from multiprocessing import Pipe
 from threading import Thread
 
 # TARGET_IPS = ["192.168.0.17"]
-TARGET_IPS = ["172.31.22.59", "172.31.31.101", "172.32.0.13", "172.33.0.4"]
+TARGET_IPS = ["172.31.16.107", "172.31.24.145", "172.32.14.150", "172.33.6.221"]
 UDP_PORT = 5005
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
