@@ -39,7 +39,7 @@ class Orderbook_Half:
         return list(map(str, self.orders))
 
     def add_order(self, so: SessionOrder):
-        def compare(item1, item2):
+        def compare_price(item1: SessionOrder, item2: SessionOrder):
             if item1.order.price < item2.order.price:
                 return -1
             elif item1.order.price > item2.order.price:
@@ -47,9 +47,19 @@ class Orderbook_Half:
             else:
                 return 0
 
+        def compare_timestamp(item1: SessionOrder, item2: SessionOrder):
+            if item1.order.price == item2.order.price:
+                if item1.timestamp < item2.timestamp:
+                    return -1
+                elif item1.timestamp > item2.timestamp:
+                    return 1
+
+            return 0
+
         temp = self.orders
         temp.append(so)
-        self.orders = sorted(temp, key=functools.cmp_to_key(compare), reverse=(self.side == Side.BID))
+        temp = sorted(temp, key=functools.cmp_to_key(compare_price), reverse=(self.side == Side.BID))
+        self.orders = sorted(temp, key=functools.cmp_to_key(compare_timestamp))
         self._build_lob()
 
     def delete_order(self, so: SessionOrder):
